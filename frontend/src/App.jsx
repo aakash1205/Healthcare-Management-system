@@ -9,12 +9,18 @@ import AdminDashboard from './pages/Dashboard/AdminDashboard';
 import PatientSignup from './pages/Signup/PatientSignup';
 import DoctorSignup from './pages/Signup/DoctorSignup';
 import AdminSignup from './pages/Signup/AdminSignup';
+import AdminLogin from './pages/Login/AdminLogin';
+import DoctorLogin from './pages/Login/DoctorLogin';
+import PatientLogin from './pages/Login/PatientLogin';  
 
 const App = () => (
   <Router>
     <AuthProvider>
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/login/admin" element={<AdminLogin />} />  
+        <Route path="/login/doctor" element={<DoctorLogin />} />
+        <Route path="/login/patient" element={<PatientLogin />} />
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
         <Route path="/doctor/dashboard" element={<DoctorDashboard />} />
         <Route path="/patient/dashboard" element={<PatientDashboard />} />
