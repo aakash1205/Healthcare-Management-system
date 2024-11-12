@@ -1,57 +1,87 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import Button from '../../components/Button';
+import React, { useEffect, useState, useContext } from 'react';
+import axios from '../../utils/axiosConfig';
+import { AuthContext } from '../../context/AuthContext';
 
 const AdminDashboard = () => {
+  const [patients, setPatients] = useState([]);
   const [doctors, setDoctors] = useState([]);
+  const [error, setError] = useState('');
+  const { token } = useContext(AuthContext);
 
   useEffect(() => {
-    // Fetch all doctors
-    const fetchDoctors = async () => {
+    const fetchData = async () => {
       try {
-        const response = await axios.get('/api/doctors');
-        setDoctors(response.data);
+        console.log('Admin token:', token);
+        
+        const [patientsRes, doctorsRes] = await Promise.all([
+          axios.get('/api/admin/patients', {
+            headers: { Authorization: `Bearer ${token}` }
+          }),
+          axios.get('/api/admin/doctors', {
+            headers: { Authorization: `Bearer ${token}` }
+          })
+        ]);
+
+        setPatients(patientsRes.data);
+        setDoctors(doctorsRes.data);
+        setError('');
       } catch (error) {
-        console.error('Error fetching doctors:', error);
+        console.error('Dashboard error:', error);
+        setError(error.response?.data?.message || 'Failed to fetch data');
+        if (error.response?.status === 403) {
+          setError('Access denied. Admin privileges required.');
+        }
       }
     };
 
-    fetchDoctors();
-  }, []);
-
-  const addDoctor = async (doctorData) => {
-    try {
-      const response = await axios.post('/api/doctors', doctorData);
-      setDoctors((prev) => [...prev, response.data]);
-    } catch (error) {
-      console.error('Error adding doctor:', error);
+    if (token) {
+      fetchData();
     }
-  };
-
-  const removeDoctor = async (doctorId) => {
-    try {
-      await axios.delete(`/api/doctors/${doctorId}`);
-      setDoctors((prev) => prev.filter((doc) => doc.id !== doctorId));
-    } catch (error) {
-      console.error('Error removing doctor:', error);
-    }
-  };
+  }, [token]);
 
   return (
-    <div className="p-6">
-      <h2 className="text-2xl font-bold mb-4">Manage Doctors</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {doctors.map((doctor) => (
-          <div key={doctor.id} className="p-4 bg-white rounded-lg shadow-md">
-            <h3 className="text-xl font-semibold">{doctor.name}</h3>
-            <p>Specialty: {doctor.specialty}</p>
-            <Button
-              label="Remove Doctor"
-              color="red"
-              onClick={() => removeDoctor(doctor.id)}
-            />
-          </div>
-        ))}
+    <div className="max-w-6xl mx-auto p-6">
+      <h1 className="text-3xl font-bold mb-8">Admin Dashboard</h1>
+      
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+          {error}
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h2 className="text-xl font-semibold mb-4">Patients</h2>
+          {patients.length > 0 ? (
+            <ul className="space-y-2">
+              {patients.map(patient => (
+                <li key={patient.UserID} className="p-3 bg-gray-50 rounded">
+                  <p className="font-medium">{patient.FullName}</p>
+                  <p className="text-sm text-gray-600">{patient.Email}</p>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-gray-500">No patients found</p>
+          )}
+        </div>
+
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h2 className="text-xl font-semibold mb-4">Doctors</h2>
+          {doctors.length > 0 ? (
+            <ul className="space-y-2">
+              {doctors.map(doctor => (
+                <li key={doctor.UserID} className="p-3 bg-gray-50 rounded">
+                  <p className="font-medium">{doctor.FullName}</p>
+                  <p className="text-sm text-gray-600">{doctor.Specialization}</p>
+                  <p className="text-sm text-gray-600">{doctor.Email}</p>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-gray-500">No doctors found</p>
+          )}
+        </div>
       </div>
     </div>
   );
