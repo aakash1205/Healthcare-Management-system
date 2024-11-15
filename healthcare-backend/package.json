@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "build": "echo 'No build step needed'",
+    "build": "babel src -d dist",
     "deploy": "az webapp up --name your-app-name --resource-group your-resource-group --plan free-app-plan --sku F1",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
