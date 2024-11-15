@@ -7,7 +7,7 @@ module.exports = async function (context, myQueueItem) {
         const { appointmentId, action } = myQueueItem;
 
         // Connect to SQL Database
-        await sql.connect(process.env.DB_CONNECTION_STRING);
+        await sql.connect(process.env.DB_HOST);
 
         switch (action) {
             case 'BOOKED':
